@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import "./App.css";
 
 function App() {
   const [text, setText] = useState("");
@@ -7,11 +8,9 @@ function App() {
 
   const generate = async (type) => {
     try {
-      const res = await axios.post(
-        `http://localhost:5000/api/ai/${type}`,
-        { text }
-      );
-
+      const res = await axios.post(`http://localhost:5000/api/ai/${type}`, {
+        text,
+      });
       setOutput(res.data.result);
     } catch (err) {
       console.error(err);
@@ -20,26 +19,32 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "30px", fontFamily: "Arial" }}>
-      <h1>AI Study Copilot</h1>
+    <div className="app">
+      <aside className="sidebar">
+        <h2>Study Tools</h2>
 
-      <textarea
-        rows="10"
-        cols="60"
-        placeholder="Paste your notes here..."
-        onChange={(e) => setText(e.target.value)}
-      />
+        <button onClick={() => generate("summarize")}>Summary</button>
+        <button onClick={() => generate("flashcards")}>Flashcards</button>
+        <button onClick={() => generate("quiz")}>Quiz</button>
+        <button onClick={() => generate("explain")}>Explain Like I'm 5</button>
+        <button onClick={() => generate("teacher")}>Teacher Mode</button>
+      </aside>
 
-      <br /><br />
+      <main className="main">
+        <h1>AI Study Copilot</h1>
+        <p className="subtitle">Paste notes. Generate study material instantly.</p>
 
-      <button onClick={() => generate("summarize")}>Summary</button>
-      <button onClick={() => generate("flashcards")}>Flashcards</button>
-      <button onClick={() => generate("quiz")}>Quiz</button>
-      <button onClick={() => generate("explain")}>Explain Like I'm 5</button>
-      <button onClick={() => generate("teacher")}>Teacher Mode</button>
+        <textarea
+          placeholder="Paste your notes here..."
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
 
-      <h2>Output:</h2>
-      <p>{output}</p>
+        <div className="output">
+          <h2>Output</h2>
+          <p>{output}</p>
+        </div>
+      </main>
     </div>
   );
 }
