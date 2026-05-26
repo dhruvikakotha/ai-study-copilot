@@ -1,24 +1,36 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f5f0e8;
-  color: #1f2933;
+* {
+  box-sizing: border-box;
 }
 
+html, body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #D3D9D4;
+  color: #212A31;
+  overflow-x: hidden;
+}
+
+/* LAYOUT */
 .app {
   display: flex;
   min-height: 100vh;
 }
 
+/* SIDEBAR */
 .sidebar {
-  width: 230px;
-  background: #2f3e46;
+  width: 240px;
+  background: #212A31;
   color: white;
   padding: 30px 20px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
 }
 
 .sidebar h2 {
   margin-bottom: 25px;
+  color: #D3D9D4;
 }
 
 .sidebar button {
@@ -27,48 +39,162 @@ body {
   padding: 14px;
   border: none;
   border-radius: 10px;
-  background: #84a98c;
+  background: #124E66;
   color: white;
   font-weight: bold;
   cursor: pointer;
 }
 
 .sidebar button:hover {
-  background: #52796f;
+  background: #0f3f52;
 }
 
+/* MAIN */
 .main {
-  flex: 1;
+  margin-left: 240px;
   padding: 50px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
+.content {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+}
+
+/* TITLE */
 h1 {
-  font-size: 48px;
-  margin-bottom: 5px;
+  font-size: 52px;
+  margin-bottom: 10px;
+  color: #212A31;
 }
 
+/* SUBTITLE */
 .subtitle {
-  color: #52796f;
+  color: #124E66;
+  margin-top: 15px;
   margin-bottom: 25px;
 }
 
+/* TEXTAREA */
 textarea {
   width: 100%;
   height: 230px;
   padding: 18px;
   border-radius: 14px;
-  border: 2px solid #cad2c5;
+  border: 2px solid #748D92;
   font-size: 16px;
   resize: none;
   background: white;
+  color: #212A31;
+
+  overflow: auto;
+  scrollbar-width: none;
 }
 
+textarea::-webkit-scrollbar {
+  display: none;
+}
+
+/* OUTPUT */
 .output {
+  width: 100%;
   margin-top: 30px;
   background: white;
   padding: 25px;
   border-radius: 16px;
-  border-left: 8px solid #84a98c;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-left: 8px solid #124E66;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  color: #212A31;
+  text-align: left;
   white-space: pre-wrap;
+}
+
+/* 🔥 ONLY CHANGE: BOLD OUTPUT TITLE */
+.output h2 {
+  text-align: center;
+  font-weight: 800;   /* ← THIS is what you wanted */
+  color: #212A31;
+}
+
+/* FLASHCARD AREA */
+.flashcard-area {
+  text-align: center;
+}
+
+/* FLASHCARD */
+.flashcard-container {
+  perspective: 1000px;
+  width: 100%;
+  height: 220px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.flashcard-container.flipped .flashcard-inner {
+  transform: rotateY(180deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  padding: 25px;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* FRONT */
+.flashcard-front {
+  background: #D3D9D4;
+  border: 2px solid #748D92;
+  color: #212A31;
+}
+
+/* BACK */
+.flashcard-back {
+  background: #124E66;
+  color: white;
+  transform: rotateY(180deg);
+}
+
+/* CONTROLS */
+.card-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.card-controls button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #124E66;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.card-controls button:hover {
+  background: #0f3f52;
+}
+
+.card-controls span {
+  font-weight: bold;
+  color: #212A31;
 }
