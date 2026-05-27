@@ -1,7 +1,15 @@
 import { useState } from "react";
 import axios from "axios";
 import confetti from "canvas-confetti";
+import mammoth from "mammoth";
+import JSZip from "jszip";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import pdfWorker from "pdfjs-dist/legacy/build/pdf.worker.mjs?url";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "./App.css";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 function App() {
   const [text, setText] = useState("");
@@ -24,13 +32,58 @@ function App() {
     flashcards: "Flashcards",
     quiz: "Quiz",
     explain: "Explain Like I'm 5",
-    teacher: "Teacher Mode",
+  };
+
+  const uploadNotes = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type === "text/plain") {
+      setText(await file.text());
+    } else if (file.name.endsWith(".docx")) {
+      const buffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+      setText(result.value);
+    } else if (file.name.endsWith(".pdf")) {
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+      let fullText = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map((item) => item.str).join(" ") + "\n";
+      }
+
+      setText(fullText);
+    } else if (file.name.endsWith(".pptx")) {
+      const buffer = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(buffer);
+
+      let fullText = "";
+
+      const slides = Object.keys(zip.files).filter(
+        (fileName) =>
+          fileName.startsWith("ppt/slides/slide") &&
+          fileName.endsWith(".xml")
+      );
+
+      for (const slide of slides) {
+        const xml = await zip.files[slide].async("text");
+        const matches = [...xml.matchAll(/<a:t>(.*?)<\/a:t>/g)];
+        fullText += matches.map((m) => m[1]).join(" ") + "\n";
+      }
+
+      setText(fullText);
+    } else {
+      alert("Upload a .txt, .docx, .pdf, or .pptx file.");
+    }
   };
 
   const goHome = () => {
     setMode("");
     setOutput("");
-    setText("");
   };
 
   const generate = async (type) => {
@@ -53,7 +106,7 @@ function App() {
       });
 
       setOutput(res.data.result);
-    } catch (err) {
+    } catch {
       setOutput("Error connecting to backend");
     } finally {
       setLoading(false);
@@ -93,9 +146,8 @@ function App() {
           .filter((line) => line.trim().startsWith("-"))
           .map((line) => line.replace("-", "").trim());
 
-        const answerLine = lines.find((line) => line.includes("Answer:"));
-
-        const correctAnswer = answerLine
+        const correctAnswer = lines
+          .find((line) => line.includes("Answer:"))
           ?.replace(/\*\*/g, "")
           .replace("Answer:", "")
           .trim();
@@ -114,6 +166,7 @@ function App() {
     } else {
       confetti({ particleCount: 150, spread: 80 });
     }
+
     setFlipped(false);
   };
 
@@ -144,7 +197,7 @@ function App() {
         setQuizFinished(true);
         confetti({ particleCount: 150, spread: 80 });
       }
-    }, 1000);
+    }, 1200);
   };
 
   return (
@@ -156,8 +209,9 @@ function App() {
         <button onClick={() => generate("summarize")}>Summary</button>
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
-        <button onClick={() => generate("explain")}>Explain Like I'm 5</button>
-        <button onClick={() => generate("teacher")}>Teacher Mode</button>
+        <button onClick={() => generate("explain")}>
+          Explain Like I'm 5
+        </button>
       </aside>
 
       <main className="main">
@@ -165,17 +219,38 @@ function App() {
           <h1>{mode ? titles[mode] : "AI Study Copilot"}</h1>
 
           {!mode && (
-            <textarea
-              placeholder="Paste your notes..."
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
+            <>
+              <textarea
+                placeholder="Paste or upload notes..."
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+              />
+
+              <input
+                type="file"
+                accept=".txt,.docx,.pdf,.pptx"
+                onChange={uploadNotes}
+              />
+
+              <p className="upload-note">
+                Upload a .txt, .docx, .pdf, or .pptx file. For Google Docs,
+                download as PDF or Word first.
+              </p>
+            </>
           )}
 
           {loading && (
             <div className="loading-box">
               <div className="spinner"></div>
               <p>Generating...</p>
+            </div>
+          )}
+
+          {!loading && mode === "summarize" && output && (
+            <div className="output formatted-output">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {output}
+              </ReactMarkdown>
             </div>
           )}
 
@@ -199,13 +274,15 @@ function App() {
 
               <div className="card-controls">
                 <button onClick={prevCard}>Back</button>
-                <span>{cardIndex + 1} / {flashcards.length}</span>
+                <span>
+                  {cardIndex + 1} / {flashcards.length}
+                </span>
                 <button onClick={nextCard}>Next</button>
               </div>
             </div>
           )}
 
-          {!loading && mode === "quiz" && quiz.length > 0 && (
+          {!loading && mode === "quiz" && quiz.length > 0 && currentQuiz && (
             <div className="output">
               {quizFinished ? (
                 <div className="quiz-card">
@@ -216,7 +293,9 @@ function App() {
                 </div>
               ) : (
                 <div className="quiz-card">
-                  <h3>{quizIndex + 1}. {currentQuiz.question}</h3>
+                  <h3>
+                    {quizIndex + 1}. {currentQuiz.question}
+                  </h3>
 
                   {currentQuiz.options.map((option, i) => {
                     const correctLetter = currentQuiz.correctAnswer.trim()[0];
@@ -240,6 +319,15 @@ function App() {
                       </button>
                     );
                   })}
+
+                  {showFeedback && (
+                    <p className="feedback">
+                      {selectedAnswer.trim()[0] ===
+                      currentQuiz.correctAnswer.trim()[0]
+                        ? "Correct!"
+                        : `Incorrect. Right answer ${currentQuiz.correctAnswer.trim()[0]}`}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -247,11 +335,14 @@ function App() {
 
           {!loading &&
             mode &&
+            mode !== "summarize" &&
             mode !== "flashcards" &&
             mode !== "quiz" &&
             output && (
-              <div className="output">
-                <p>{output}</p>
+              <div className="output formatted-output">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {output}
+                </ReactMarkdown>
               </div>
             )}
         </div>

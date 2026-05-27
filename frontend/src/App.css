@@ -1,164 +1,75 @@
-* {
-  box-sizing: border-box;
-}
-
 body {
   margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: linear-gradient(135deg, #d3d9d4, #eef3f1);
-  color: #212a31;
+  font-family: Inter;
 }
 
 .app {
   display: flex;
-  min-height: 100vh;
 }
 
 .sidebar {
-  width: 260px;
+  width: 250px;
   background: #212a31;
   color: white;
-  padding: 32px 24px;
-  height: 100vh;
-  position: fixed;
-}
-
-.sidebar h2 {
-  margin-bottom: 30px;
-  font-size: 28px;
+  padding: 20px;
 }
 
 .sidebar button {
   width: 100%;
-  margin-bottom: 16px;
-  padding: 15px;
-  border: none;
-  border-radius: 14px;
+  margin: 10px 0;
+  padding: 12px;
   background: #124e66;
   color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.sidebar button:hover {
-  background: #1b6b84;
-  transform: translateY(-2px);
+  border: none;
 }
 
 .main {
-  margin-left: 260px;
-  width: calc(100% - 260px);
-  padding: 70px 40px;
-  display: flex;
-  justify-content: center;
-}
-
-.content {
-  width: 100%;
-  max-width: 900px;
-  text-align: center;
-}
-
-h1 {
-  font-size: 58px;
-  margin-bottom: 35px;
+  flex: 1;
+  padding: 40px;
 }
 
 textarea {
   width: 100%;
-  height: 260px;
-  padding: 22px;
-  border-radius: 20px;
-  border: 2px solid #748d92;
-  font-size: 17px;
-  resize: none;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  height: 200px;
 }
 
 .output {
-  background: rgba(255, 255, 255, 0.9);
-  padding: 34px;
-  border-radius: 24px;
-  border-left: 10px solid #124e66;
-  box-shadow: 0 18px 45px rgba(0,0,0,0.12);
+  background: white;
+  padding: 20px;
+  margin-top: 20px;
 }
 
-/* FLASHCARDS */
-.flashcard-container {
-  perspective: 1000px;
-  width: 100%;
-  height: 280px;
-  cursor: pointer;
+/* spinner */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 5px solid gray;
+  border-top: 5px solid blue;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.flashcard-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  transition: transform 0.6s ease;
-  transform-style: preserve-3d;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.flashcard-container.flipped .flashcard-inner {
-  transform: rotateY(180deg);
-}
-
-.flashcard-front,
-.flashcard-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 22px;
-  padding: 32px;
-  backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.flashcard-front {
-  background: #d3d9d4;
-  border: 2px solid #748d92;
-}
-
-.flashcard-back {
-  background: #124e66;
+/* markdown */
+.formatted-output pre {
+  background: black;
   color: white;
-  transform: rotateY(180deg);
+  padding: 10px;
 }
 
-.flashcard-number {
-  position: absolute;
-  top: 18px;
-  left: 22px;
-  background: #124e66;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
+/* quiz */
+.quiz-option {
+  display: block;
+  margin: 10px 0;
+  padding: 10px;
+}
+
+.feedback {
+  margin-top: 10px;
   font-weight: bold;
-}
-
-.card-controls {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 22px;
-}
-
-.card-controls button {
-  padding: 12px 22px;
-  border: none;
-  border-radius: 12px;
-  background: #124e66;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.card-controls button:hover {
-  background: #1b6b84;
 }
