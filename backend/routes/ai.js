@@ -10,28 +10,29 @@ const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+const generateAI = async (prompt) => {
+  const response = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }],
+  });
+
+  return response.choices[0].message.content;
+};
+
 router.post("/summarize", async (req, res) => {
   try {
     const { text } = req.body;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: `Summarize:\n${text}`,
-        },
-      ],
-    });
+    const result = await generateAI(`
+Summarize these notes clearly:
 
-    res.json({
-      result: response.choices[0].message.content,
-    });
+${text}
+`);
+
+    res.json({ result });
   } catch (error) {
     console.log(error);
-    res.status(500).json({
-      error: "Something went wrong",
-    });
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
@@ -39,17 +40,27 @@ router.post("/flashcards", async (req, res) => {
   try {
     const { text } = req.body;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: `Create flashcards from this:\n${text}` }
-      ],
-    });
+    const result = await generateAI(`
+Create flashcards from these notes.
 
-    res.json({ result: response.choices[0].message.content });
+Format EXACTLY like this:
+
+Flashcard 1
+Q: question here
+A: answer here
+
+Flashcard 2
+Q: question here
+A: answer here
+
+Notes:
+${text}
+`);
+
+    res.json({ result });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: "Error generating flashcards" });
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
@@ -57,16 +68,28 @@ router.post("/quiz", async (req, res) => {
   try {
     const { text } = req.body;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: `Create a 5 question quiz with answers:\n${text}` }
-      ],
-    });
+    const result = await generateAI(`
+Create a multiple choice quiz from these notes.
 
-    res.json({ result: response.choices[0].message.content });
+Format EXACTLY like this:
+
+1. Question here?
+- A) answer choice
+- B) answer choice
+- C) answer choice
+- D) answer choice
+Answer: B
+
+Make 5 questions.
+
+Notes:
+${text}
+`);
+
+    res.json({ result });
   } catch (error) {
-    res.status(500).json({ error: "Error generating quiz" });
+    console.log(error);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
@@ -74,16 +97,16 @@ router.post("/explain", async (req, res) => {
   try {
     const { text } = req.body;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: `Explain this like I'm 5:\n${text}` }
-      ],
-    });
+    const result = await generateAI(`
+Explain this like I'm 5 years old:
 
-    res.json({ result: response.choices[0].message.content });
+${text}
+`);
+
+    res.json({ result });
   } catch (error) {
-    res.status(500).json({ error: "Error explaining" });
+    console.log(error);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
@@ -91,16 +114,16 @@ router.post("/teacher", async (req, res) => {
   try {
     const { text } = req.body;
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "user", content: `Turn this into a lesson plan:\n${text}` }
-      ],
-    });
+    const result = await generateAI(`
+Teach this topic step-by-step like a helpful teacher:
 
-    res.json({ result: response.choices[0].message.content });
+${text}
+`);
+
+    res.json({ result });
   } catch (error) {
-    res.status(500).json({ error: "Error generating lesson plan" });
+    console.log(error);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
 
