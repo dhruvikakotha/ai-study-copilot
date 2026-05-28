@@ -31,7 +31,9 @@ function App() {
     summarize: "Summary",
     flashcards: "Flashcards",
     quiz: "Quiz",
-    explain: "Explain Like I'm 5",
+    explain: "Simplified Explanation",
+    essay: "Essay Feedback",
+    resume: "Resume Feedback",
   };
 
   const uploadNotes = async (e) => {
@@ -49,7 +51,6 @@ function App() {
       const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
 
       let fullText = "";
-
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
@@ -62,11 +63,8 @@ function App() {
       const zip = await JSZip.loadAsync(buffer);
 
       let fullText = "";
-
       const slides = Object.keys(zip.files).filter(
-        (fileName) =>
-          fileName.startsWith("ppt/slides/slide") &&
-          fileName.endsWith(".xml")
+        (f) => f.startsWith("ppt/slides/slide") && f.endsWith(".xml")
       );
 
       for (const slide of slides) {
@@ -81,29 +79,40 @@ function App() {
     }
   };
 
+  const resetTools = () => {
+    setCardIndex(0);
+    setFlipped(false);
+    setQuizIndex(0);
+    setSelectedAnswer("");
+    setShowFeedback(false);
+    setScore(0);
+    setWrong(0);
+    setQuizFinished(false);
+  };
+
   const goHome = () => {
     setMode("");
     setOutput("");
   };
 
   const generate = async (type) => {
+    if (!text.trim()) {
+      setMode(type);
+      resetTools();
+      setOutput("Please paste or upload something first.");
+      return;
+    }
+
     try {
       setMode(type);
       setOutput("");
       setLoading(true);
+      resetTools();
 
-      setCardIndex(0);
-      setFlipped(false);
-      setQuizIndex(0);
-      setSelectedAnswer("");
-      setShowFeedback(false);
-      setScore(0);
-      setWrong(0);
-      setQuizFinished(false);
-
-      const res = await axios.post(`http://localhost:5000/api/ai/${type}`, {
-        text,
-      });
+      const res = await axios.post(
+        `http://localhost:5000/api/ai/${type}`,
+        { text }
+      );
 
       setOutput(res.data.result);
     } catch {
@@ -113,89 +122,55 @@ function App() {
     }
   };
 
-  const getFlashcards = () => {
-    return output.split("Flashcard").slice(1).map((card) => {
+  const getFlashcards = () =>
+    output.split("Flashcard").slice(1).map((card) => {
       const parts = card.split("A:");
-
-      let question = parts[0]
-        ?.replace(/\*\*/g, "")
-        .replace("Q:", "")
-        .trim();
-
+      let question = parts[0]?.replace(/\*\*/g, "").replace("Q:", "").trim();
       question = question.replace(/^\s*\d+\.?\s*/, "");
-
       const answer = parts[1]?.replace(/\*\*/g, "").trim();
-
       return { question, answer };
     });
-  };
 
-  const getQuiz = () => {
-    return output
+  const getQuiz = () =>
+    output
       .split(/\n(?=\d+\.)/)
       .filter((q) => q.includes("Answer:"))
       .map((block) => {
         const lines = block.split("\n").filter(Boolean);
-
-        const question = lines[0]
-          .replace(/\*\*/g, "")
-          .replace(/^\d+\.\s*/, "")
-          .trim();
-
-        const options = lines
-          .filter((line) => line.trim().startsWith("-"))
-          .map((line) => line.replace("-", "").trim());
-
-        const correctAnswer = lines
-          .find((line) => line.includes("Answer:"))
-          ?.replace(/\*\*/g, "")
-          .replace("Answer:", "")
-          .trim();
-
-        return { question, options, correctAnswer };
+        return {
+          question: lines[0].replace(/^\d+\.\s*/, "").trim(),
+          options: lines
+            .filter((l) => l.trim().startsWith("-"))
+            .map((l) => l.replace("-", "").trim()),
+          correctAnswer: lines
+            .find((l) => l.includes("Answer:"))
+            ?.replace("Answer:", "")
+            .trim(),
+        };
       });
-  };
 
   const flashcards = getFlashcards();
   const quiz = getQuiz();
   const currentQuiz = quiz[quizIndex];
 
-  const nextCard = () => {
-    if (cardIndex < flashcards.length - 1) {
-      setCardIndex((prev) => prev + 1);
-    } else {
-      confetti({ particleCount: 150, spread: 80 });
-    }
-
-    setFlipped(false);
-  };
-
-  const prevCard = () => {
-    setCardIndex((prev) =>
-      prev === 0 ? flashcards.length - 1 : prev - 1
-    );
-    setFlipped(false);
-  };
-
   const chooseAnswer = (option) => {
     setSelectedAnswer(option);
     setShowFeedback(true);
 
-    const correctLetter = currentQuiz.correctAnswer.trim()[0];
-    const selectedLetter = option.trim()[0];
+    const correct = currentQuiz.correctAnswer.trim()[0];
+    const selected = option.trim()[0];
 
-    if (selectedLetter === correctLetter) setScore((prev) => prev + 1);
-    else setWrong((prev) => prev + 1);
+    if (selected === correct) setScore((s) => s + 1);
+    else setWrong((w) => w + 1);
 
     setTimeout(() => {
       setSelectedAnswer("");
       setShowFeedback(false);
 
-      if (quizIndex < quiz.length - 1) {
-        setQuizIndex((prev) => prev + 1);
-      } else {
+      if (quizIndex < quiz.length - 1) setQuizIndex((i) => i + 1);
+      else {
         setQuizFinished(true);
-        confetti({ particleCount: 150, spread: 80 });
+        confetti();
       }
     }, 1200);
   };
@@ -210,7 +185,13 @@ function App() {
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
         <button onClick={() => generate("explain")}>
-          Explain Like I'm 5
+          Simplified Explanation
+        </button>
+        <button onClick={() => generate("essay")}>
+          Essay Feedback
+        </button>
+        <button onClick={() => generate("resume")}>
+          Resume Feedback
         </button>
       </aside>
 
@@ -221,7 +202,7 @@ function App() {
           {!mode && (
             <>
               <textarea
-                placeholder="Paste or upload notes..."
+                placeholder="Paste or upload notes, essay, or resume..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
@@ -231,11 +212,6 @@ function App() {
                 accept=".txt,.docx,.pdf,.pptx"
                 onChange={uploadNotes}
               />
-
-              <p className="upload-note">
-                Upload a .txt, .docx, .pdf, or .pptx file. For Google Docs,
-                download as PDF or Word first.
-              </p>
             </>
           )}
 
@@ -246,105 +222,46 @@ function App() {
             </div>
           )}
 
-          {!loading && mode === "summarize" && output && (
-            <div className="output formatted-output">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {output}
-              </ReactMarkdown>
-            </div>
-          )}
-
-          {!loading && mode === "flashcards" && flashcards.length > 0 && (
+          {!loading && output === "Please paste or upload something first." && (
             <div className="output">
-              <div
-                className={`flashcard-container ${flipped ? "flipped" : ""}`}
-                onClick={() => setFlipped(!flipped)}
-              >
-                <div className="flashcard-inner">
-                  <div className="flashcard-front">
-                    <div className="flashcard-number">{cardIndex + 1}</div>
-                    <h3>{flashcards[cardIndex].question}</h3>
-                  </div>
-
-                  <div className="flashcard-back">
-                    <p>{flashcards[cardIndex].answer}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card-controls">
-                <button onClick={prevCard}>Back</button>
-                <span>
-                  {cardIndex + 1} / {flashcards.length}
-                </span>
-                <button onClick={nextCard}>Next</button>
-              </div>
-            </div>
-          )}
-
-          {!loading && mode === "quiz" && quiz.length > 0 && currentQuiz && (
-            <div className="output">
-              {quizFinished ? (
-                <div className="quiz-card">
-                  <h3>Quiz Complete!</h3>
-                  <p>Correct: {score}</p>
-                  <p>Wrong: {wrong}</p>
-                  <p>Total: {quiz.length}</p>
-                </div>
-              ) : (
-                <div className="quiz-card">
-                  <h3>
-                    {quizIndex + 1}. {currentQuiz.question}
-                  </h3>
-
-                  {currentQuiz.options.map((option, i) => {
-                    const correctLetter = currentQuiz.correctAnswer.trim()[0];
-                    const optionLetter = option.trim()[0];
-
-                    let className = "quiz-option";
-
-                    if (showFeedback) {
-                      if (optionLetter === correctLetter) className += " correct";
-                      else if (selectedAnswer === option) className += " wrong";
-                    }
-
-                    return (
-                      <button
-                        key={i}
-                        className={className}
-                        onClick={() => chooseAnswer(option)}
-                        disabled={showFeedback}
-                      >
-                        {option}
-                      </button>
-                    );
-                  })}
-
-                  {showFeedback && (
-                    <p className="feedback">
-                      {selectedAnswer.trim()[0] ===
-                      currentQuiz.correctAnswer.trim()[0]
-                        ? "Correct!"
-                        : `Incorrect. Right answer ${currentQuiz.correctAnswer.trim()[0]}`}
-                    </p>
-                  )}
-                </div>
-              )}
+              <p>{output}</p>
             </div>
           )}
 
           {!loading &&
-            mode &&
-            mode !== "summarize" &&
+            output &&
+            output !== "Please paste or upload something first." &&
             mode !== "flashcards" &&
-            mode !== "quiz" &&
-            output && (
+            mode !== "quiz" && (
               <div className="output formatted-output">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {output}
                 </ReactMarkdown>
               </div>
             )}
+
+          {!loading && mode === "flashcards" && flashcards.length > 0 && (
+            <div className="output">
+              <h3>{flashcards[cardIndex].question}</h3>
+              <p>{flashcards[cardIndex].answer}</p>
+            </div>
+          )}
+
+          {!loading && mode === "quiz" && currentQuiz && (
+            <div className="output">
+              <h3>{currentQuiz.question}</h3>
+
+              {currentQuiz.options.map((o, i) => (
+                <button
+                  key={i}
+                  className="quiz-option"
+                  onClick={() => chooseAnswer(o)}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>
