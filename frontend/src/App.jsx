@@ -17,23 +17,24 @@ function App() {
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // flashcards
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
+  // quiz
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
   const [score, setScore] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
 
   const titles = {
-    summarize: "SUMMARY",
-    flashcards: "FLASHCARDS",
-    quiz: "QUIZ",
-    explain: "SIMPLIFIED EXPLANATION",
-    essay: "ESSAY FEEDBACK",
-    resume: "RESUME FEEDBACK",
+    summarize: "Summary",
+    flashcards: "Flashcards",
+    quiz: "Quiz",
+    explain: "Simplified Explanation",
+    essay: "Essay Feedback",
+    resume: "Resume Feedback",
   };
 
   const uploadNotes = async (e) => {
@@ -64,7 +65,7 @@ function App() {
       let fullText = "";
 
       const slides = Object.keys(zip.files).filter(
-        (f) => f.startsWith("ppt/slides/slide") && f.endsWith(".xml")
+        (f) => f.startsWith("ppt/slides/slide")
       );
 
       for (const slide of slides) {
@@ -74,40 +75,27 @@ function App() {
       }
 
       setText(fullText);
-    } else {
-      alert("Upload a .txt, .docx, .pdf, or .pptx file.");
     }
   };
 
-  const resetTools = () => {
+  const reset = () => {
     setCardIndex(0);
     setFlipped(false);
     setQuizIndex(0);
     setSelectedAnswer("");
-    setShowFeedback(false);
     setScore(0);
     setWrong(0);
     setQuizFinished(false);
   };
 
-  const goHome = () => {
-    setMode("");
-    setOutput("");
-  };
-
   const generate = async (type) => {
-    if (!text.trim()) {
-      setMode(type);
-      resetTools();
-      setOutput("Please paste or upload something first.");
-      return;
-    }
+    if (!text.trim()) return;
 
     try {
       setMode(type);
-      setOutput("");
       setLoading(true);
-      resetTools();
+      setOutput("");
+      reset();
 
       const res = await axios.post(
         `https://ai-study-copilot-gdfo.onrender.com/api/ai/${type}`,
@@ -128,12 +116,12 @@ function App() {
       .slice(1)
       .map((card) => {
         const parts = card.split("A:");
-        let question = parts[0]?.replace(/\*\*/g, "").replace("Q:", "").trim();
-        question = question.replace(/^\s*\d+\.?\s*/, "");
-        const answer = parts[1]?.replace(/\*\*/g, "").trim();
-        return { question, answer };
+        return {
+          question: parts[0]?.replace("Q:", "").trim(),
+          answer: parts[1]?.trim(),
+        };
       })
-      .filter((card) => card.question && card.answer);
+      .filter((c) => c.question && c.answer);
 
   const getQuiz = () =>
     output
@@ -141,19 +129,17 @@ function App() {
       .filter((q) => q.includes("Answer:"))
       .map((block) => {
         const lines = block.split("\n").filter(Boolean);
-
         return {
           question: lines[0].replace(/^\d+\.\s*/, "").trim(),
           options: lines
-            .filter((l) => l.trim().startsWith("-"))
+            .filter((l) => l.startsWith("-"))
             .map((l) => l.replace("-", "").trim()),
           correctAnswer: lines
             .find((l) => l.includes("Answer:"))
             ?.replace("Answer:", "")
             .trim(),
         };
-      })
-      .filter((q) => q.question && q.options.length && q.correctAnswer);
+      });
 
   const flashcards = getFlashcards();
   const quiz = getQuiz();
@@ -163,39 +149,35 @@ function App() {
     if (selectedAnswer) return;
 
     setSelectedAnswer(option);
-    setShowFeedback(true);
 
-    const correct = currentQuiz.correctAnswer.trim()[0];
-    const selected = option.trim()[0];
-
-    if (selected === correct) {
+    if (option.trim()[0] === currentQuiz.correctAnswer.trim()[0]) {
       setScore((s) => s + 1);
     } else {
       setWrong((w) => w + 1);
     }
 
     setTimeout(() => {
-      setSelectedAnswer("");
-      setShowFeedback(false);
-
       if (quizIndex < quiz.length - 1) {
         setQuizIndex((i) => i + 1);
+        setSelectedAnswer("");
       } else {
         setQuizFinished(true);
         confetti();
       }
-    }, 2000);
+    }, 1200);
   };
 
   return (
     <div className="app">
       <aside className="sidebar">
         <h2>Study Tools</h2>
-        <button onClick={goHome}>Home</button>
+        <button onClick={() => setMode("")}>Home</button>
         <button onClick={() => generate("summarize")}>Summary</button>
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
-        <button onClick={() => generate("explain")}>Simplified Explanation</button>
+        <button onClick={() => generate("explain")}>
+          Simplified Explanation
+        </button>
         <button onClick={() => generate("essay")}>Essay Feedback</button>
         <button onClick={() => generate("resume")}>Resume Feedback</button>
       </aside>
@@ -207,59 +189,43 @@ function App() {
           {!mode && (
             <>
               <textarea
-                placeholder="Paste or upload notes, essay, or resume..."
+                placeholder="Paste or upload notes..."
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
-
-              <input
-                type="file"
-                accept=".txt,.docx,.pdf,.pptx"
-                onChange={uploadNotes}
-              />
+              <input type="file" onChange={uploadNotes} />
             </>
           )}
 
-          {loading && (
-            <div className="loading-box">
-              <div className="spinner"></div>
-              <p>Generating...</p>
-            </div>
-          )}
+          {loading && <p>Generating...</p>}
 
-          {!loading && output === "Please paste or upload something first." && (
-            <div className="output">
-              <p>{output}</p>
-            </div>
-          )}
-
+          {/* normal output */}
           {!loading &&
             output &&
-            output !== "Please paste or upload something first." &&
             mode !== "flashcards" &&
             mode !== "quiz" && (
-              <div className="output formatted-output">
+              <div className="output">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {output}
                 </ReactMarkdown>
               </div>
             )}
 
-          {!loading && mode === "flashcards" && flashcards.length > 0 && (
+          {/* FLASHCARDS */}
+          {mode === "flashcards" && flashcards.length > 0 && (
             <div className="output">
               <h3>{flashcards[cardIndex].question}</h3>
 
               {flipped && <p>{flashcards[cardIndex].answer}</p>}
 
               <button onClick={() => setFlipped(!flipped)}>
-                {flipped ? "Hide Answer" : "Show Answer"}
+                {flipped ? "Hide Answer" : "Flip"}
               </button>
 
               <button
                 onClick={() => {
                   setCardIndex((cardIndex + 1) % flashcards.length);
                   setFlipped(false);
-                  confetti();
                 }}
               >
                 Next
@@ -267,7 +233,8 @@ function App() {
             </div>
           )}
 
-          {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
+          {/* QUIZ */}
+          {mode === "quiz" && currentQuiz && !quizFinished && (
             <div className="output">
               <h3>{currentQuiz.question}</h3>
 
@@ -289,19 +256,20 @@ function App() {
                 </button>
               ))}
 
-              {showFeedback &&
+              {selectedAnswer &&
                 selectedAnswer.trim()[0] !==
                   currentQuiz.correctAnswer.trim()[0] && (
-                  <p className="feedback">
-                    Correct answer: {currentQuiz.correctAnswer}
-                  </p>
+                  <p>Correct answer: {currentQuiz.correctAnswer}</p>
                 )}
             </div>
           )}
 
-          {!loading && mode === "quiz" && quizFinished && (
+          {/* FINAL SCORE */}
+          {quizFinished && (
             <div className="output">
-              <h2>Final Score: {score} / {quiz.length}</h2>
+              <h2>
+                Score: {score} / {quiz.length}
+              </h2>
               <p>Wrong: {wrong}</p>
             </div>
           )}
