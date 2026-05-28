@@ -112,13 +112,15 @@ function App() {
 
   const getFlashcards = () =>
     output
-      .split("Flashcard")
+      .split(/Flashcard\s*\d*:|Flashcard/gi)
       .slice(1)
       .map((card) => {
-        const parts = card.split("A:");
+        const questionMatch = card.match(/Q:\s*(.*)/i);
+        const answerMatch = card.match(/A:\s*([\s\S]*)/i);
+
         return {
-          question: parts[0]?.replace("Q:", "").trim(),
-          answer: parts[1]?.trim(),
+          question: questionMatch?.[1]?.replace(/\*\*/g, "").trim(),
+          answer: answerMatch?.[1]?.replace(/\*\*/g, "").trim(),
         };
       })
       .filter((c) => c.question && c.answer);
