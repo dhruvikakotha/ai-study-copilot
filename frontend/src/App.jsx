@@ -177,7 +177,7 @@ function App() {
         setQuizFinished(true);
         confetti({ particleCount: 160, spread: 90 });
       }
-    }, 1200);
+    }, 1800);
   };
 
   return (
@@ -313,6 +313,15 @@ function App() {
                   {o}
                 </button>
               ))}
+
+              {selectedAnswer &&
+                (selectedAnswer.trim()[0] === currentQuiz.correctAnswer.trim()[0] ? (
+                  <p style={{ color: "green", fontWeight: "bold" }}>Correct!</p>
+                ) : (
+                  <p style={{ color: "red", fontWeight: "bold" }}>
+                    Incorrect. The correct answer is {currentQuiz.correctAnswer}
+                  </p>
+                ))}
             </div>
           )}
 
