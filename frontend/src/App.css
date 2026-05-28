@@ -152,3 +152,53 @@ input[type="file"] {
   margin-top: 12px;
   font-weight: bold;
 }
+
+.flashcard-wrap {
+  margin-top: 25px;
+}
+
+.flashcard {
+  height: 220px;
+  background: transparent;
+  perspective: 1000px;
+  cursor: pointer;
+  position: relative;
+}
+
+.flashcard-front,
+.flashcard-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  box-sizing: border-box;
+}
+
+.flashcard-front {
+  border-left: 12px solid #155d73;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+  border-left: 12px solid #155d73;
+}
+
+.flashcard.flipped .flashcard-front {
+  transform: rotateY(180deg);
+}
+
+.flashcard.flipped .flashcard-back {
+  transform: rotateY(360deg);
+}
+
+.flashcard-front,
+.flashcard-back {
+  transition: transform 0.6s;
+}
