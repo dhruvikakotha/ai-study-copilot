@@ -73,6 +73,8 @@ function App() {
       }
 
       setText(fullText);
+    } else {
+      alert("Upload a .txt, .docx, .pdf, or .pptx file.");
     }
   };
 
@@ -189,7 +191,11 @@ function App() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
-              <input type="file" onChange={uploadNotes} />
+              <input
+                type="file"
+                accept=".txt,.docx,.pdf,.pptx"
+                onChange={uploadNotes}
+              />
             </>
           )}
 
@@ -201,14 +207,14 @@ function App() {
           )}
 
           {!loading && output && mode !== "flashcards" && mode !== "quiz" && (
-            <div className="output">
+            <div className="output formatted-output">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {output}
               </ReactMarkdown>
             </div>
           )}
 
-          {mode === "flashcards" && flashcards.length > 0 && (
+          {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
                 className={`flashcard ${flipped ? "flipped" : ""}`}
@@ -234,7 +240,7 @@ function App() {
             </div>
           )}
 
-          {mode === "quiz" && currentQuiz && !quizFinished && (
+          {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
             <div className="output">
               <h3>{currentQuiz.question}</h3>
 
@@ -263,7 +269,7 @@ function App() {
             </div>
           )}
 
-          {quizFinished && (
+          {!loading && quizFinished && (
             <div className="output">
               <h2>Score: {score} / {quiz.length}</h2>
               <p>Wrong: {wrong}</p>
