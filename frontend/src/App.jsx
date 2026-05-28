@@ -100,6 +100,9 @@ function App() {
       setMode(type);
       setLoading(true);
       setOutput("");
+      setCardIndex(0);
+      setFlipped(false);
+      setFinishedCards(false);
 
       const res = await axios.post(
         `https://ai-study-copilot-gdfo.onrender.com/api/ai/${type}`,
@@ -169,7 +172,7 @@ function App() {
         setSelectedAnswer("");
       } else {
         setQuizFinished(true);
-        confetti();
+        confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
       }
     }, 1200);
   };
@@ -221,7 +224,6 @@ function App() {
             </div>
           )}
 
-          {/* FLASHCARDS */}
           {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
@@ -234,8 +236,25 @@ function App() {
                   alignItems: "center",
                   justifyContent: "center",
                   textAlign: "center",
+                  position: "relative",
                 }}
               >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    left: "20px",
+                    background: "#124e66",
+                    color: "white",
+                    padding: "6px 12px",
+                    borderRadius: "999px",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                  }}
+                >
+                  {cardIndex + 1} / {flashcards.length}
+                </span>
+
                 {flipped ? (
                   <p style={{ fontSize: "24px", fontWeight: "600" }}>
                     {flashcards[cardIndex]?.answer}
@@ -249,7 +268,7 @@ function App() {
                 onClick={() => {
                   if (cardIndex === flashcards.length - 1) {
                     setFinishedCards(true);
-                    confetti();
+                    confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
                   } else {
                     setCardIndex(cardIndex + 1);
                   }
@@ -267,7 +286,6 @@ function App() {
             </div>
           )}
 
-          {/* QUIZ */}
           {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
             <div className="output">
               <h3>{currentQuiz.question}</h3>
