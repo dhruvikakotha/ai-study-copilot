@@ -113,19 +113,29 @@ function App() {
   };
 
   const getFlashcards = () => {
-    const matches = [
-      ...output.matchAll(
-        /Flashcard\s*\d*[\s\S]*?Q:\s*([\s\S]*?)\nA:\s*([\s\S]*?)(?=\nFlashcard\s*\d*|$)/gi
-      ),
-    ];
+  const cards = output.split(/Flashcard\s*\d*/i).slice(1);
 
-    return matches
-      .map((m) => ({
-        question: m[1].replace(/\*\*/g, "").trim(),
-        answer: m[2].replace(/\*\*/g, "").trim(),
-      }))
-      .filter((c) => c.question && c.answer);
-  };
+  return cards
+    .map((card) => {
+      const qIndex = card.indexOf("Q:");
+      const aIndex = card.indexOf("A:");
+
+      if (qIndex === -1 || aIndex === -1) return null;
+
+      const question = card
+        .slice(qIndex + 2, aIndex)
+        .replace(/\*\*/g, "")
+        .trim();
+
+      const answer = card
+        .slice(aIndex + 2)
+        .replace(/\*\*/g, "")
+        .trim();
+
+      return { question, answer };
+    })
+    .filter((c) => c && c.question && c.answer);
+};
 
   const getQuiz = () =>
     output
