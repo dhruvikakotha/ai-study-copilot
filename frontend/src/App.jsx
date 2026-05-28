@@ -16,10 +16,8 @@ function App() {
   const [output, setOutput] = useState("");
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [score, setScore] = useState(0);
@@ -113,29 +111,29 @@ function App() {
   };
 
   const getFlashcards = () => {
-  const cards = output.split(/Flashcard\s*\d*/i).slice(1);
+    const cards = output.split(/Flashcard\s*\d*/i).slice(1);
 
-  return cards
-    .map((card) => {
-      const qIndex = card.indexOf("Q:");
-      const aIndex = card.indexOf("A:");
+    return cards
+      .map((card) => {
+        const qIndex = card.indexOf("Q:");
+        const aIndex = card.indexOf("A:");
 
-      if (qIndex === -1 || aIndex === -1) return null;
+        if (qIndex === -1 || aIndex === -1) return null;
 
-      const question = card
-        .slice(qIndex + 2, aIndex)
-        .replace(/\*\*/g, "")
-        .trim();
+        const question = card
+          .slice(qIndex + 2, aIndex)
+          .replace(/\*\*/g, "")
+          .trim();
 
-      const answer = card
-        .slice(aIndex + 2)
-        .replace(/\*\*/g, "")
-        .trim();
+        const answer = card
+          .slice(aIndex + 2)
+          .replace(/\*\*/g, "")
+          .trim();
 
-      return { question, answer };
-    })
-    .filter((c) => c && c.question && c.answer);
-};
+        return { question, answer };
+      })
+      .filter((c) => c && c.question && c.answer);
+  };
 
   const getQuiz = () =>
     output
@@ -239,7 +237,10 @@ function App() {
                 </div>
 
                 <div className="flashcard-back">
-                  <p>{flashcards[cardIndex].answer}</p>
+                  {/* ✅ FIXED HERE */}
+                  <p style={{ color: "#212a31" }}>
+                    {flashcards[cardIndex]?.answer || "Answer not found"}
+                  </p>
                 </div>
               </div>
 
@@ -275,12 +276,6 @@ function App() {
                   {o}
                 </button>
               ))}
-
-              {selectedAnswer &&
-                selectedAnswer.trim()[0] !==
-                  currentQuiz.correctAnswer.trim()[0] && (
-                  <p>Correct answer: {currentQuiz.correctAnswer}</p>
-                )}
             </div>
           )}
 
