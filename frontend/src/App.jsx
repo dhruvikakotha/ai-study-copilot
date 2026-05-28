@@ -35,7 +35,6 @@ function App() {
     resume: "Resume Feedback",
   };
 
-  // ✅ FULL RESET (fixes your Home bug)
   const resetAll = () => {
     setMode("");
     setOutput("");
@@ -113,25 +112,20 @@ function App() {
     }
   };
 
-  // ✅ FIXED FLASHCARD PARSER
-  const getFlashcards = () =>
-  output
-    .split(/Flashcard\s*\d*/gi)
-    .slice(1)
-    .map((card) => {
-      const question = card
-        .match(/Q:\s*([\s\S]*?)(?=\nA:)/i)?.[1]
-        ?.replace(/\*\*/g, "")
-        .trim();
+  const getFlashcards = () => {
+    const matches = [
+      ...output.matchAll(
+        /Flashcard\s*\d*[\s\S]*?Q:\s*([\s\S]*?)\nA:\s*([\s\S]*?)(?=\nFlashcard\s*\d*|$)/gi
+      ),
+    ];
 
-      const answer = card
-        .match(/A:\s*([\s\S]*)/i)?.[1]
-        ?.replace(/\*\*/g, "")
-        .trim();
-
-      return { question, answer };
-    })
-    .filter((c) => c.question && c.answer);
+    return matches
+      .map((m) => ({
+        question: m[1].replace(/\*\*/g, "").trim(),
+        answer: m[2].replace(/\*\*/g, "").trim(),
+      }))
+      .filter((c) => c.question && c.answer);
+  };
 
   const getQuiz = () =>
     output
@@ -181,16 +175,11 @@ function App() {
     <div className="app">
       <aside className="sidebar">
         <h2>Study Tools</h2>
-
-        {/* ✅ FIXED HOME */}
         <button onClick={resetAll}>Home</button>
-
         <button onClick={() => generate("summarize")}>Summary</button>
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
-        <button onClick={() => generate("explain")}>
-          Simplified Explanation
-        </button>
+        <button onClick={() => generate("explain")}>Simplified Explanation</button>
         <button onClick={() => generate("essay")}>Essay Feedback</button>
         <button onClick={() => generate("resume")}>Resume Feedback</button>
       </aside>
@@ -214,7 +203,6 @@ function App() {
             </>
           )}
 
-          {/* ✅ LOADING FIX */}
           {loading && (
             <div className="loading-box">
               <div className="spinner"></div>
@@ -230,7 +218,6 @@ function App() {
             </div>
           )}
 
-          {/* ✅ QUIZLET STYLE FLASHCARDS */}
           {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
@@ -287,7 +274,7 @@ function App() {
             </div>
           )}
 
-          {!loading && quizFinished && (
+          {!loading && mode === "quiz" && quizFinished && (
             <div className="output">
               <h2>Score: {score} / {quiz.length}</h2>
               <p>Wrong: {wrong}</p>
