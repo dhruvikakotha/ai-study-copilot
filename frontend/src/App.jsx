@@ -201,17 +201,11 @@ function App() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
-
               <input
                 type="file"
                 accept=".txt,.docx,.pdf,.pptx"
                 onChange={uploadNotes}
               />
-
-              {/* ✅ ADDED */}
-              <p style={{ marginTop: "8px", color: "#555", fontSize: "14px" }}>
-                Accepted files: .txt, .docx, .pdf, .pptx
-              </p>
             </>
           )}
 
@@ -274,7 +268,7 @@ function App() {
                 onClick={() => {
                   if (cardIndex === flashcards.length - 1) {
                     setFinishedCards(true);
-                    confetti({ particleCount: 160, spread: 90 });
+                    confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
                   } else {
                     setCardIndex(cardIndex + 1);
                   }
@@ -289,6 +283,37 @@ function App() {
           {finishedCards && mode === "flashcards" && (
             <div className="output">
               <h2>You finished all flashcards 🎉</h2>
+            </div>
+          )}
+
+          {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
+            <div className="output">
+              <h3>{currentQuiz.question}</h3>
+
+              {currentQuiz.options.map((o, i) => (
+                <button
+                  key={i}
+                  className={
+                    selectedAnswer
+                      ? o.trim()[0] === currentQuiz.correctAnswer.trim()[0]
+                        ? "quiz-option correct"
+                        : o === selectedAnswer
+                        ? "quiz-option wrong"
+                        : "quiz-option"
+                      : "quiz-option"
+                  }
+                  onClick={() => chooseAnswer(o)}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!loading && mode === "quiz" && quizFinished && (
+            <div className="output">
+              <h2>Score: {score} / {quiz.length}</h2>
+              <p>Wrong: {wrong}</p>
             </div>
           )}
         </div>
