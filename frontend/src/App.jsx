@@ -35,6 +35,20 @@ function App() {
     resume: "Resume Feedback",
   };
 
+  // ✅ FULL RESET (fixes your Home bug)
+  const resetAll = () => {
+    setMode("");
+    setOutput("");
+    setText("");
+    setCardIndex(0);
+    setFlipped(false);
+    setQuizIndex(0);
+    setSelectedAnswer("");
+    setScore(0);
+    setWrong(0);
+    setQuizFinished(false);
+  };
+
   const uploadNotes = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -78,16 +92,6 @@ function App() {
     }
   };
 
-  const reset = () => {
-    setCardIndex(0);
-    setFlipped(false);
-    setQuizIndex(0);
-    setSelectedAnswer("");
-    setScore(0);
-    setWrong(0);
-    setQuizFinished(false);
-  };
-
   const generate = async (type) => {
     if (!text.trim()) return;
 
@@ -95,7 +99,6 @@ function App() {
       setMode(type);
       setLoading(true);
       setOutput("");
-      reset();
 
       const res = await axios.post(
         `https://ai-study-copilot-gdfo.onrender.com/api/ai/${type}`,
@@ -110,6 +113,7 @@ function App() {
     }
   };
 
+  // ✅ FIXED FLASHCARD PARSER
   const getFlashcards = () =>
     output
       .split(/Flashcard\s*\d*:|Flashcard/gi)
@@ -173,11 +177,16 @@ function App() {
     <div className="app">
       <aside className="sidebar">
         <h2>Study Tools</h2>
-        <button onClick={() => setMode("")}>Home</button>
+
+        {/* ✅ FIXED HOME */}
+        <button onClick={resetAll}>Home</button>
+
         <button onClick={() => generate("summarize")}>Summary</button>
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
-        <button onClick={() => generate("explain")}>Simplified Explanation</button>
+        <button onClick={() => generate("explain")}>
+          Simplified Explanation
+        </button>
         <button onClick={() => generate("essay")}>Essay Feedback</button>
         <button onClick={() => generate("resume")}>Resume Feedback</button>
       </aside>
@@ -201,6 +210,7 @@ function App() {
             </>
           )}
 
+          {/* ✅ LOADING FIX */}
           {loading && (
             <div className="loading-box">
               <div className="spinner"></div>
@@ -216,6 +226,7 @@ function App() {
             </div>
           )}
 
+          {/* ✅ QUIZLET STYLE FLASHCARDS */}
           {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
@@ -265,7 +276,8 @@ function App() {
               ))}
 
               {selectedAnswer &&
-                selectedAnswer.trim()[0] !== currentQuiz.correctAnswer.trim()[0] && (
+                selectedAnswer.trim()[0] !==
+                  currentQuiz.correctAnswer.trim()[0] && (
                   <p>Correct answer: {currentQuiz.correctAnswer}</p>
                 )}
             </div>
