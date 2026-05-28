@@ -110,7 +110,7 @@ function App() {
       resetTools();
 
       const res = await axios.post(
-        `http://localhost:5000/api/ai/${type}`,
+        `https://ai-study-copilot-gdfo.onrender.com/api/ai/${type}`,
         { text }
       );
 
