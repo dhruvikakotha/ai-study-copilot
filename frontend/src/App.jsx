@@ -17,11 +17,9 @@ function App() {
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // flashcards
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
-  // quiz
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [score, setScore] = useState(0);
@@ -64,8 +62,8 @@ function App() {
       const zip = await JSZip.loadAsync(buffer);
       let fullText = "";
 
-      const slides = Object.keys(zip.files).filter(
-        (f) => f.startsWith("ppt/slides/slide")
+      const slides = Object.keys(zip.files).filter((f) =>
+        f.startsWith("ppt/slides/slide")
       );
 
       for (const slide of slides) {
@@ -175,9 +173,7 @@ function App() {
         <button onClick={() => generate("summarize")}>Summary</button>
         <button onClick={() => generate("flashcards")}>Flashcards</button>
         <button onClick={() => generate("quiz")}>Quiz</button>
-        <button onClick={() => generate("explain")}>
-          Simplified Explanation
-        </button>
+        <button onClick={() => generate("explain")}>Simplified Explanation</button>
         <button onClick={() => generate("essay")}>Essay Feedback</button>
         <button onClick={() => generate("resume")}>Resume Feedback</button>
       </aside>
@@ -197,30 +193,35 @@ function App() {
             </>
           )}
 
-          {loading && <p>Generating...</p>}
+          {loading && (
+            <div className="loading-box">
+              <div className="spinner"></div>
+              <p>Generating...</p>
+            </div>
+          )}
 
-          {/* normal output */}
-          {!loading &&
-            output &&
-            mode !== "flashcards" &&
-            mode !== "quiz" && (
-              <div className="output">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {output}
-                </ReactMarkdown>
-              </div>
-            )}
-
-          {/* FLASHCARDS */}
-          {mode === "flashcards" && flashcards.length > 0 && (
+          {!loading && output && mode !== "flashcards" && mode !== "quiz" && (
             <div className="output">
-              <h3>{flashcards[cardIndex].question}</h3>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {output}
+              </ReactMarkdown>
+            </div>
+          )}
 
-              {flipped && <p>{flashcards[cardIndex].answer}</p>}
+          {mode === "flashcards" && flashcards.length > 0 && (
+            <div className="flashcard-wrap">
+              <div
+                className={`flashcard ${flipped ? "flipped" : ""}`}
+                onClick={() => setFlipped(!flipped)}
+              >
+                <div className="flashcard-front">
+                  <h3>{flashcards[cardIndex].question}</h3>
+                </div>
 
-              <button onClick={() => setFlipped(!flipped)}>
-                {flipped ? "Hide Answer" : "Flip"}
-              </button>
+                <div className="flashcard-back">
+                  <p>{flashcards[cardIndex].answer}</p>
+                </div>
+              </div>
 
               <button
                 onClick={() => {
@@ -233,7 +234,6 @@ function App() {
             </div>
           )}
 
-          {/* QUIZ */}
           {mode === "quiz" && currentQuiz && !quizFinished && (
             <div className="output">
               <h3>{currentQuiz.question}</h3>
@@ -257,19 +257,15 @@ function App() {
               ))}
 
               {selectedAnswer &&
-                selectedAnswer.trim()[0] !==
-                  currentQuiz.correctAnswer.trim()[0] && (
+                selectedAnswer.trim()[0] !== currentQuiz.correctAnswer.trim()[0] && (
                   <p>Correct answer: {currentQuiz.correctAnswer}</p>
                 )}
             </div>
           )}
 
-          {/* FINAL SCORE */}
           {quizFinished && (
             <div className="output">
-              <h2>
-                Score: {score} / {quiz.length}
-              </h2>
+              <h2>Score: {score} / {quiz.length}</h2>
               <p>Wrong: {wrong}</p>
             </div>
           )}
