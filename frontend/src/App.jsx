@@ -172,7 +172,7 @@ function App() {
         setSelectedAnswer("");
       } else {
         setQuizFinished(true);
-        confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
+        confetti({ particleCount: 160, spread: 90 });
       }
     }, 1200);
   };
@@ -208,7 +208,7 @@ function App() {
                 onChange={uploadNotes}
               />
 
-              {/* ✅ ADDED HERE */}
+              {/* ✅ THIS IS THE ONLY NEW ADDITION */}
               <div style={{ marginTop: "10px", color: "#124e66", fontWeight: "700" }}>
                 Accepted files: .txt, .docx, .pdf, .pptx
               </div>
@@ -222,7 +222,75 @@ function App() {
             </div>
           )}
 
-          {/* rest unchanged */}
+          {!loading && output && mode !== "flashcards" && mode !== "quiz" && (
+            <div className="output formatted-output">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {output}
+              </ReactMarkdown>
+            </div>
+          )}
+
+          {!loading && mode === "flashcards" && flashcards.length > 0 && (
+            <div className="flashcard-wrap">
+              <div
+                className="output"
+                onClick={() => setFlipped(!flipped)}
+                style={{
+                  cursor: "pointer",
+                  minHeight: "260px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "16px",
+                    left: "20px",
+                    background: "#124e66",
+                    color: "white",
+                    padding: "6px 12px",
+                    borderRadius: "999px",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                  }}
+                >
+                  {cardIndex + 1} / {flashcards.length}
+                </span>
+
+                {flipped ? (
+                  <p style={{ fontSize: "24px", fontWeight: "600" }}>
+                    {flashcards[cardIndex]?.answer}
+                  </p>
+                ) : (
+                  <h3>{flashcards[cardIndex]?.question}</h3>
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (cardIndex === flashcards.length - 1) {
+                    setFinishedCards(true);
+                    confetti({ particleCount: 160, spread: 90 });
+                  } else {
+                    setCardIndex(cardIndex + 1);
+                  }
+                  setFlipped(false);
+                }}
+              >
+                Next
+              </button>
+            </div>
+          )}
+
+          {finishedCards && mode === "flashcards" && (
+            <div className="output">
+              <h2>You finished all flashcards 🎉</h2>
+            </div>
+          )}
         </div>
       </main>
     </div>
