@@ -1,11 +1,15 @@
 import express from "express";
 import OpenAI from "openai";
 import dotenv from "dotenv";
+
 dotenv.config();
+
 const router = express.Router();
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
 const generateAI = async (prompt) => {
   const response = await client.chat.completions.create({
     model: "gpt-4o-mini",
@@ -13,6 +17,7 @@ const generateAI = async (prompt) => {
   });
   return response.choices[0].message.content;
 };
+
 router.post("/summarize", async (req, res) => {
   try {
     const { text } = req.body;
@@ -26,6 +31,7 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 router.post("/flashcards", async (req, res) => {
   try {
     const { text } = req.body;
@@ -47,11 +53,20 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
+/* ✅ ONLY THIS PART CHANGED */
 router.post("/quiz", async (req, res) => {
   try {
     const { text } = req.body;
+
     const result = await generateAI(`
 Create a multiple choice quiz from these notes.
+
+Make the number of questions depend on note length:
+- short notes: 5 questions
+- medium notes: 8-10 questions
+- long notes: 12-15 questions
+
 Format EXACTLY like this:
 1. Question here?
 - A) answer choice
@@ -59,16 +74,18 @@ Format EXACTLY like this:
 - C) answer choice
 - D) answer choice
 Answer: B
-Make 5 questions.
+
 Notes:
 ${text}
 `);
+
     res.json({ result });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 router.post("/explain", async (req, res) => {
   try {
     const { text } = req.body;
@@ -82,6 +99,7 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 router.post("/teacher", async (req, res) => {
   try {
     const { text } = req.body;
@@ -95,6 +113,7 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 router.post("/essay", async (req, res) => {
   try {
     const { text } = req.body;
@@ -124,6 +143,7 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 router.post("/resume", async (req, res) => {
   try {
     const { text } = req.body;
@@ -157,4 +177,5 @@ ${text}
     res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 export default router;
