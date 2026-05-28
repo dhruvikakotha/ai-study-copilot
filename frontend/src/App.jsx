@@ -115,19 +115,23 @@ function App() {
 
   // ✅ FIXED FLASHCARD PARSER
   const getFlashcards = () =>
-    output
-      .split(/Flashcard\s*\d*:|Flashcard/gi)
-      .slice(1)
-      .map((card) => {
-        const questionMatch = card.match(/Q:\s*(.*)/i);
-        const answerMatch = card.match(/A:\s*([\s\S]*)/i);
+  output
+    .split(/Flashcard\s*\d*/gi)
+    .slice(1)
+    .map((card) => {
+      const question = card
+        .match(/Q:\s*([\s\S]*?)(?=\nA:)/i)?.[1]
+        ?.replace(/\*\*/g, "")
+        .trim();
 
-        return {
-          question: questionMatch?.[1]?.replace(/\*\*/g, "").trim(),
-          answer: answerMatch?.[1]?.replace(/\*\*/g, "").trim(),
-        };
-      })
-      .filter((c) => c.question && c.answer);
+      const answer = card
+        .match(/A:\s*([\s\S]*)/i)?.[1]
+        ?.replace(/\*\*/g, "")
+        .trim();
+
+      return { question, answer };
+    })
+    .filter((c) => c.question && c.answer);
 
   const getQuiz = () =>
     output
