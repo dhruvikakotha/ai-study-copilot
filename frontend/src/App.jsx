@@ -110,29 +110,21 @@ function App() {
     }
   };
 
+  // ✅ FIXED FLASHCARDS
   const getFlashcards = () => {
     const cards = output.split(/Flashcard\s*\d*/i).slice(1);
 
     return cards
       .map((card) => {
-        const qIndex = card.indexOf("Q:");
-        const aIndex = card.indexOf("A:");
+        const q = card.split("Q:")[1]?.split("A:")[0];
+        const a = card.split("A:")[1];
 
-        if (qIndex === -1 || aIndex === -1) return null;
-
-        const question = card
-          .slice(qIndex + 2, aIndex)
-          .replace(/\*\*/g, "")
-          .trim();
-
-        const answer = card
-          .slice(aIndex + 2)
-          .replace(/\*\*/g, "")
-          .trim();
-
-        return { question, answer };
+        return {
+          question: q?.replace(/\*\*/g, "").trim(),
+          answer: a?.replace(/\*\*/g, "").trim(),
+        };
       })
-      .filter((c) => c && c.question && c.answer);
+      .filter((c) => c.question && c.answer);
   };
 
   const getQuiz = () =>
@@ -226,22 +218,28 @@ function App() {
             </div>
           )}
 
+          {/* ✅ GUARANTEED WORKING FLASHCARDS */}
           {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
-                className={`flashcard ${flipped ? "flipped" : ""}`}
+                className="output"
                 onClick={() => setFlipped(!flipped)}
+                style={{
+                  cursor: "pointer",
+                  minHeight: "260px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                }}
               >
-                <div className="flashcard-front">
-                  <h3>{flashcards[cardIndex].question}</h3>
-                </div>
-
-                <div className="flashcard-back">
-                  {/* ✅ FIXED HERE */}
-                  <p style={{ color: "#212a31" }}>
-                    {flashcards[cardIndex]?.answer || "Answer not found"}
+                {flipped ? (
+                  <p style={{ fontSize: "24px", fontWeight: "600" }}>
+                    {flashcards[cardIndex]?.answer}
                   </p>
-                </div>
+                ) : (
+                  <h3>{flashcards[cardIndex]?.question}</h3>
+                )}
               </div>
 
               <button
