@@ -16,8 +16,11 @@ function App() {
   const [output, setOutput] = useState("");
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
+
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [finishedCards, setFinishedCards] = useState(false);
+
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [score, setScore] = useState(0);
@@ -39,6 +42,7 @@ function App() {
     setText("");
     setCardIndex(0);
     setFlipped(false);
+    setFinishedCards(false);
     setQuizIndex(0);
     setSelectedAnswer("");
     setScore(0);
@@ -110,7 +114,6 @@ function App() {
     }
   };
 
-  // ✅ FIXED FLASHCARDS
   const getFlashcards = () => {
     const cards = output.split(/Flashcard\s*\d*/i).slice(1);
 
@@ -218,7 +221,7 @@ function App() {
             </div>
           )}
 
-          {/* ✅ GUARANTEED WORKING FLASHCARDS */}
+          {/* FLASHCARDS */}
           {!loading && mode === "flashcards" && flashcards.length > 0 && (
             <div className="flashcard-wrap">
               <div
@@ -244,7 +247,12 @@ function App() {
 
               <button
                 onClick={() => {
-                  setCardIndex((cardIndex + 1) % flashcards.length);
+                  if (cardIndex === flashcards.length - 1) {
+                    setFinishedCards(true);
+                    confetti();
+                  } else {
+                    setCardIndex(cardIndex + 1);
+                  }
                   setFlipped(false);
                 }}
               >
@@ -253,6 +261,13 @@ function App() {
             </div>
           )}
 
+          {finishedCards && mode === "flashcards" && (
+            <div className="output">
+              <h2>You finished all flashcards 🎉</h2>
+            </div>
+          )}
+
+          {/* QUIZ */}
           {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
             <div className="output">
               <h3>{currentQuiz.question}</h3>
