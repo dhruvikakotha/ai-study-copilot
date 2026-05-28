@@ -322,27 +322,4 @@ function App() {
   );
 }
 
-// ... KEEP EVERYTHING ABOVE THE SAME
-
-          {!mode && (
-            <>
-              <textarea
-                placeholder="Paste or upload notes..."
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-              />
-
-              <input
-                type="file"
-                accept=".txt,.docx,.pdf,.pptx"
-                onChange={uploadNotes}
-              />
-
-              {/* ✅ NEW TEXT ADDED HERE */}
-              <p style={{ marginTop: "8px", color: "#555", fontSize: "14px" }}>
-                Accepted files: .txt, .docx, .pdf, .pptx
-              </p>
-            </>
-          )}
-
 export default App;
