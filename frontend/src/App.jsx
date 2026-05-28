@@ -16,11 +16,9 @@ function App() {
   const [output, setOutput] = useState("");
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [finishedCards, setFinishedCards] = useState(false);
-
   const [quizIndex, setQuizIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState("");
   const [score, setScore] = useState(0);
@@ -103,6 +101,11 @@ function App() {
       setCardIndex(0);
       setFlipped(false);
       setFinishedCards(false);
+      setQuizIndex(0);
+      setSelectedAnswer("");
+      setScore(0);
+      setWrong(0);
+      setQuizFinished(false);
 
       const res = await axios.post(
         `https://ai-study-copilot-gdfo.onrender.com/api/ai/${type}`,
@@ -201,14 +204,11 @@ function App() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
-
               <input
                 type="file"
                 accept=".txt,.docx,.pdf,.pptx"
                 onChange={uploadNotes}
               />
-
-              {/* ✅ THIS IS THE ONLY NEW ADDITION */}
               <div style={{ marginTop: "10px", color: "#124e66", fontWeight: "700" }}>
                 Accepted files: .txt, .docx, .pdf, .pptx
               </div>
@@ -289,6 +289,37 @@ function App() {
           {finishedCards && mode === "flashcards" && (
             <div className="output">
               <h2>You finished all flashcards 🎉</h2>
+            </div>
+          )}
+
+          {!loading && mode === "quiz" && currentQuiz && !quizFinished && (
+            <div className="output">
+              <h3>{currentQuiz.question}</h3>
+
+              {currentQuiz.options.map((o, i) => (
+                <button
+                  key={i}
+                  className={
+                    selectedAnswer
+                      ? o.trim()[0] === currentQuiz.correctAnswer.trim()[0]
+                        ? "quiz-option correct"
+                        : o === selectedAnswer
+                        ? "quiz-option wrong"
+                        : "quiz-option"
+                      : "quiz-option"
+                  }
+                  onClick={() => chooseAnswer(o)}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!loading && mode === "quiz" && quizFinished && (
+            <div className="output">
+              <h2>Score: {score} / {quiz.length}</h2>
+              <p>Wrong: {wrong}</p>
             </div>
           )}
         </div>
