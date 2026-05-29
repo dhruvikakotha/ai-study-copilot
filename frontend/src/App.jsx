@@ -16,6 +16,8 @@ function App() {
   const [output, setOutput] = useState("");
   const [mode, setMode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [finishedCards, setFinishedCards] = useState(false);
@@ -38,6 +40,7 @@ function App() {
     setMode("");
     setOutput("");
     setText("");
+    setErrorMessage("");
     setCardIndex(0);
     setFlipped(false);
     setFinishedCards(false);
@@ -51,6 +54,8 @@ function App() {
   const uploadNotes = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setErrorMessage("");
 
     if (file.type === "text/plain") {
       setText(await file.text());
@@ -92,7 +97,12 @@ function App() {
   };
 
   const generate = async (type) => {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      setErrorMessage("Please paste or upload notes first.");
+      return;
+    }
+
+    setErrorMessage("");
 
     try {
       setMode(type);
@@ -122,12 +132,10 @@ function App() {
 
   const getFlashcards = () => {
     const cards = output.split(/Flashcard\s*\d*/i).slice(1);
-
     return cards
       .map((card) => {
         const q = card.split("Q:")[1]?.split("A:")[0];
         const a = card.split("A:")[1];
-
         return {
           question: q?.replace(/\*\*/g, "").trim(),
           answer: a?.replace(/\*\*/g, "").trim(),
@@ -202,7 +210,10 @@ function App() {
               <textarea
                 placeholder="Paste or upload notes..."
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  setErrorMessage("");
+                }}
               />
               <input
                 type="file"
@@ -212,6 +223,12 @@ function App() {
               <div style={{ marginTop: "10px", color: "#124e66", fontWeight: "700" }}>
                 Accepted files: .txt, .docx, .pdf, .pptx
               </div>
+
+              {errorMessage && (
+                <p style={{ color: "red", fontWeight: "bold", marginTop: "10px" }}>
+                  {errorMessage}
+                </p>
+              )}
             </>
           )}
 
